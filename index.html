@@ -333,14 +333,15 @@
     document.getElementById('dateField').valueAsDate = new Date();
 
     window.addEventListener('DOMContentLoaded', () => {
-      // Use fetch instead of google.script.run — works from any domain
-      fetch(APPS_SCRIPT_URL + '?action=getProducts')
-        .then(r => r.json())
-        .then(res => {
-          if (res.success) onProductsLoaded(res.data);
-          else showLoadError('Failed to load products: ' + (res.error || 'Unknown error'));
-        })
-        .catch(err => showLoadError('Network error: ' + err.message));
+      // JSONP — bypasses CORS restrictions on Apps Script
+      window._jsonpCallback = function(res) {
+        if (res.success) onProductsLoaded(res.data);
+        else showLoadError('Failed to load products: ' + (res.error || 'Unknown error'));
+      };
+      const script = document.createElement('script');
+      script.onerror = () => showLoadError('Could not reach the server. Check your Apps Script deployment.');
+      script.src = APPS_SCRIPT_URL + '?action=getProducts&callback=_jsonpCallback';
+      document.head.appendChild(script);
 
       document.getElementById('productSearch').addEventListener('input', filterProducts);
     });
@@ -490,23 +491,28 @@
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Submitting…';
 
-      // Use fetch + query param (GET) — Apps Script doesn't support POST CORS easily
-      fetch(APPS_SCRIPT_URL + '?action=submitRequest&payload=' + encodeURIComponent(JSON.stringify(payload)))
-        .then(r => r.json())
-        .then(res => {
-          btn.disabled = false; btn.innerHTML = 'Submit Request';
-          if (res && res.success) {
-            document.getElementById('formWrap').style.display = 'none';
-            document.getElementById('successScreen').style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          } else {
-            showError('Submission failed: ' + (res.error || 'Unknown error'));
-          }
-        })
-        .catch(err => {
-          btn.disabled = false; btn.innerHTML = 'Submit Request';
-          showError('Network error: ' + err.message);
-        });
+      // JSONP — bypasses CORS restrictions on Apps Script
+      const cbName = '_submitCb_' + Date.now();
+      window[cbName] = function(res) {
+        delete window[cbName];
+        btn.disabled = false; btn.innerHTML = 'Submit Request';
+        if (res && res.success) {
+          document.getElementById('formWrap').style.display = 'none';
+          document.getElementById('successScreen').style.display = 'block';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          showError('Submission failed: ' + (res.error || 'Unknown error'));
+        }
+      };
+      const s = document.createElement('script');
+      s.onerror = () => {
+        delete window[cbName];
+        btn.disabled = false; btn.innerHTML = 'Submit Request';
+        showError('Network error. Please try again.');
+      };
+      s.src = APPS_SCRIPT_URL + '?action=submitRequest&callback=' + cbName +
+              '&payload=' + encodeURIComponent(JSON.stringify(payload));
+      document.head.appendChild(s);
     }
 
     function showError(msg) {
