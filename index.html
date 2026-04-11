@@ -423,13 +423,9 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
           <div class="slide active">
             <div class="slide-placeholder">
               <span>🖼️</span>
-              <p>Photos from Google Drive will appear here once configured</p>
+              
             </div>
           </div>
-        </div>
-        <div class="setup-hint" id="photosSetupHint">
-          <strong>Setup:</strong> Add <code>action=getPhotos</code> to your Apps Script returning
-          <code>[{ url, caption }]</code>. Use <code>https://drive.google.com/thumbnail?id=FILE_ID&amp;sz=w800</code>
         </div>
       </div>
 
@@ -714,7 +710,7 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
           { name: 'Eid al Adha',        emoji: '🌙' },
           { name: 'Islamic New Year',    emoji: '🎆' },
           { name: "Prophet's Birthday",  emoji: '⭐' },
-          { name: "National Day",  emoji: '🇦🇪' },
+          { name: "National Day",  emoji: '🚩' },
         ]);
       }
     };
@@ -725,7 +721,7 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
         { name: 'Eid al Adha',        emoji: '🌙' },
         { name: 'Islamic New Year',    emoji: '🎆' },
         { name: "Prophet's Birthday",  emoji: '⭐' },
-        { name: "National Day",  emoji: '🇦🇪' },
+        { name: "National Day",  emoji: '🚩' },
       ]);
     };
     s.src = APPS_SCRIPT_URL + '?action=getHolidays&callback=' + cbName;
