@@ -794,10 +794,10 @@ s0.parentNode.insertBefore(s1,s0);
         renderHolidays(res.data);
       } else {
         renderHolidays([
-          { name: 'Eid al Adha',        emoji: '🌙' },
-          { name: 'Islamic New Year',    emoji: '🎆' },
-          { name: "Prophet's Birthday",  emoji: '⭐' },
-          { name: "National Day",  emoji: '🚩' },
+          { name: 'Eid al Adha - March 20-22',        emoji: '🌙' },
+          { name: 'Islamic New Year - June 17',    emoji: '🎆' },
+          { name: "Prophet's Birthday - August 25",  emoji: '⭐' },
+          { name: "National Day - December 2-3",  emoji: '🚩' },
         ]);
       }
     };
@@ -805,10 +805,10 @@ s0.parentNode.insertBefore(s1,s0);
     s.onerror = function() {
       delete window[cbName];
       renderHolidays([
-        { name: 'Eid al Adha',        emoji: '🌙' },
-        { name: 'Islamic New Year',    emoji: '🎆' },
-        { name: "Prophet's Birthday",  emoji: '⭐' },
-        { name: "National Day",  emoji: '🚩' },
+        { name: 'Eid al Adha - March 20-22',        emoji: '🌙' },
+        { name: 'Islamic New Year - June 17',    emoji: '🎆' },
+        { name: "Prophet's Birthday - August 25",  emoji: '⭐' },
+        { name: "National Day - December 2-3",  emoji: '🚩' },
       ]);
     };
     s.src = APPS_SCRIPT_URL + '?action=getHolidays&callback=' + cbName;
