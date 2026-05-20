@@ -340,9 +340,122 @@
       .social-btn { width: 40px; height: 40px; }
       .footer-copy { font-size: 10px; }
     }
+
+
+    /* ══ EMAIL VERIFICATION SECTION ══ */
+    .email-auth-box {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--cream);
+      padding: 14px;
+    }
+    .email-choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 600px) { .email-choice-grid { grid-template-columns: 1fr; } }
+    .email-choice {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      min-height: 92px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 7px;
+    }
+    .email-choice:hover,
+    .email-choice.active {
+      border-color: var(--pink);
+      background: rgba(233,30,140,0.035);
+      box-shadow: 0 0 0 3px rgba(233,30,140,0.07);
+    }
+    .email-choice-head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .email-radio-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: #fff;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .email-choice.active .email-radio-dot {
+      border-color: var(--pink);
+    }
+    .email-choice.active .email-radio-dot::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: var(--pink);
+    }
+    .email-choice small {
+      display: block;
+      color: var(--muted);
+      line-height: 1.4;
+      font-size: 11.5px;
+      margin-left: 27px;
+    }
+    .email-auth-panel {
+      display: none;
+      border-top: 1px dashed var(--border);
+      padding-top: 12px;
+      margin-top: 4px;
+      animation: fadeUp 0.2s ease both;
+    }
+    .email-auth-panel.active { display: block; }
+    .google-auth-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+    .verified-pill {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #eef9ee;
+      color: #2d6a31;
+      border: 1px solid #bfe5c2;
+    }
+    .verified-pill.show { display: inline-flex; }
+    .email-help-text {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+    .email-status {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+    .email-status.ok { color: #2d6a31; }
+    .email-status.error { color: var(--error); }
+    .email-status.neutral { color: var(--muted); }
+
   </style>
 
   <link rel="icon" type="image/png" href="favicon.png">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -398,8 +511,47 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
         <div class="alert alert-error" id="errorAlert"></div>
 
         <div class="form-group">
-          <label for="emailField">Email <span class="req">*</span></label>
-          <input type="email" id="emailField" placeholder="your@email.com">
+          <label>Email Verification <span class="req">*</span></label>
+          <div class="email-auth-box">
+            <div class="email-choice-grid">
+              <div class="email-choice" id="googleChoice" onclick="selectEmailMethod('google')" role="button" tabindex="0">
+                <div class="email-choice-head"><span class="email-radio-dot"></span> Login with Google</div>
+                <small>Use this option for a verified Google account, such as @gmail.com.</small>
+              </div>
+              <div class="email-choice" id="flexwayChoice" onclick="selectEmailMethod('flexway')" role="button" tabindex="0">
+                <div class="email-choice-head"><span class="email-radio-dot"></span> Use Flexway Email</div>
+                <small>Type a valid company email ending with @flexway.com.</small>
+              </div>
+            </div>
+
+            <div class="email-auth-panel" id="googlePanel">
+              <div id="g_id_onload"
+                   data-client_id="PASTE_YOUR_GOOGLE_OAUTH_CLIENT_ID_HERE.apps.googleusercontent.com"
+                   data-callback="handleGoogleCredentialResponse"
+                   data-auto_prompt="false">
+              </div>
+              <div class="google-auth-row">
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="signin_with"
+                     data-shape="pill"
+                     data-logo_alignment="left">
+                </div>
+                <span class="verified-pill" id="googleVerifiedPill">✓ Google account verified</span>
+              </div>
+              <div class="email-help-text">The signed-in Google email will be used for this request.</div>
+            </div>
+
+            <div class="email-auth-panel" id="flexwayPanel">
+              <input type="email" id="flexwayEmailField" placeholder="name@flexway.com" autocomplete="email">
+              <div class="email-help-text">Only emails ending with <strong>@flexway.com</strong> are accepted here.</div>
+            </div>
+
+            <input type="hidden" id="emailField">
+            <div class="email-status neutral" id="emailStatus">Choose Google login or enter a Flexway email before submitting.</div>
+          </div>
         </div>
 
         <div class="form-row">
@@ -583,11 +735,154 @@ s0.parentNode.insertBefore(s1,s0);
   document.getElementById('dateField').valueAsDate = new Date();
 
   window.addEventListener('DOMContentLoaded', () => {
+    initEmailVerification();
     loadProducts();
     loadHolidays();
     loadPhotos();
     document.getElementById('productSearch').addEventListener('input', filterProducts);
   });
+
+  /* ══ EMAIL VERIFICATION ══════════════════════════════════════════════ */
+  let selectedEmailMethod = '';
+  let verifiedEmail = '';
+  let verifiedEmailMethod = '';
+
+  function initEmailVerification() {
+    const flexwayField = document.getElementById('flexwayEmailField');
+    if (flexwayField) {
+      flexwayField.addEventListener('input', validateFlexwayEmailLive);
+    }
+
+    ['googleChoice', 'flexwayChoice'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          selectEmailMethod(id === 'googleChoice' ? 'google' : 'flexway');
+        }
+      });
+    });
+  }
+
+  function selectEmailMethod(method) {
+    selectedEmailMethod = method;
+    document.getElementById('googleChoice').classList.toggle('active', method === 'google');
+    document.getElementById('flexwayChoice').classList.toggle('active', method === 'flexway');
+    document.getElementById('googlePanel').classList.toggle('active', method === 'google');
+    document.getElementById('flexwayPanel').classList.toggle('active', method === 'flexway');
+
+    verifiedEmail = '';
+    verifiedEmailMethod = '';
+    document.getElementById('emailField').value = '';
+    document.getElementById('googleVerifiedPill').classList.remove('show');
+
+    if (method === 'google') {
+      setEmailStatus('neutral', 'Please sign in with Google to verify your email.');
+    } else {
+      validateFlexwayEmailLive();
+      setTimeout(() => document.getElementById('flexwayEmailField').focus(), 50);
+    }
+  }
+
+  function handleGoogleCredentialResponse(response) {
+    try {
+      const payload = parseJwt(response.credential);
+      const email = String(payload.email || '').trim().toLowerCase();
+
+      if (!email || !payload.email_verified) {
+        clearVerifiedEmail('Google could not verify this email. Please try again.');
+        return;
+      }
+
+      if (!email.endsWith('@gmail.com') && !email.endsWith('@flexway.com')) {
+        clearVerifiedEmail('Only @gmail.com or @flexway.com Google accounts are allowed.');
+        return;
+      }
+
+      selectedEmailMethod = 'google';
+      verifiedEmail = email;
+      verifiedEmailMethod = 'google';
+      document.getElementById('emailField').value = email;
+      document.getElementById('googleVerifiedPill').textContent = '✓ ' + email;
+      document.getElementById('googleVerifiedPill').classList.add('show');
+      setEmailStatus('ok', 'Google account verified: ' + email);
+    } catch (err) {
+      clearVerifiedEmail('Google sign-in failed. Please try again.');
+    }
+  }
+
+  function parseJwt(token) {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  }
+
+  function validateFlexwayEmailLive() {
+    if (selectedEmailMethod !== 'flexway') return false;
+    const field = document.getElementById('flexwayEmailField');
+    const email = String(field.value || '').trim().toLowerCase();
+    const isValid = /^[a-z0-9._%+-]+@flexway\.com$/i.test(email);
+
+    if (!email) {
+      clearVerifiedEmail('Enter your @flexway.com email address.');
+      return false;
+    }
+
+    if (!isValid) {
+      clearVerifiedEmail('Only a valid @flexway.com email is accepted for this option.');
+      return false;
+    }
+
+    verifiedEmail = email;
+    verifiedEmailMethod = 'flexway';
+    document.getElementById('emailField').value = email;
+    setEmailStatus('ok', 'Flexway email accepted: ' + email);
+    return true;
+  }
+
+  function clearVerifiedEmail(message) {
+    verifiedEmail = '';
+    verifiedEmailMethod = '';
+    document.getElementById('emailField').value = '';
+    setEmailStatus('error', message);
+  }
+
+  function setEmailStatus(type, message) {
+    const status = document.getElementById('emailStatus');
+    if (!status) return;
+    status.className = 'email-status ' + type;
+    status.textContent = message;
+  }
+
+  function getValidatedEmailForSubmit() {
+    if (!selectedEmailMethod) {
+      showError('Please choose one email option: Login with Google or use your @flexway.com email.');
+      return '';
+    }
+
+    if (selectedEmailMethod === 'google') {
+      if (!verifiedEmail || verifiedEmailMethod !== 'google') {
+        showError('Please complete Google sign-in before submitting.');
+        return '';
+      }
+      return verifiedEmail;
+    }
+
+    if (selectedEmailMethod === 'flexway') {
+      if (!validateFlexwayEmailLive()) {
+        showError('Please enter a valid @flexway.com email before submitting.');
+        return '';
+      }
+      return verifiedEmail;
+    }
+
+    showError('Please complete email verification before submitting.');
+    return '';
+  }
 
   /* ══ PRODUCTS ════════════════════════════════════════════════════════ */
   function loadProducts() {
@@ -752,7 +1047,17 @@ s0.parentNode.insertBefore(s1,s0);
   }
 
   function resetForm() {
+    selectedEmailMethod = '';
+    verifiedEmail = '';
+    verifiedEmailMethod = '';
     document.getElementById('emailField').value = '';
+    document.getElementById('flexwayEmailField').value = '';
+    document.getElementById('googleChoice').classList.remove('active');
+    document.getElementById('flexwayChoice').classList.remove('active');
+    document.getElementById('googlePanel').classList.remove('active');
+    document.getElementById('flexwayPanel').classList.remove('active');
+    document.getElementById('googleVerifiedPill').classList.remove('show');
+    setEmailStatus('neutral', 'Choose Google login or enter a Flexway email before submitting.');
     document.getElementById('dateField').valueAsDate = new Date();
     document.getElementById('branchField').value = '';
     document.getElementById('notesField').value = '';
