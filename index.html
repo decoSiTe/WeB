@@ -884,10 +884,10 @@ s0.parentNode.insertBefore(s1,s0);
     if (!select) return;
 
     select.disabled = true;
-    select.innerHTML = '<option value="">Loading branches from Google Sheet…</option>';
+    select.innerHTML = '<option value="">Fetching Branch List…</option>';
     if (status) {
       status.className = 'branch-load-status';
-      status.textContent = 'Branch list is loading from Google Sheet.';
+      status.textContent = 'Fetching Branch List';
     }
 
     const cbName = '_branchesCb_' + Date.now();
