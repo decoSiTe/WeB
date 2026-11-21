@@ -1163,6 +1163,7 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
       <div class="card">
         <div class="card-title">Select Price Tags</div>
         <div class="card-subtitle">Tick all items you need price tags for. Items are grouped by category.</div>
+        <div id="productPriceSource" class="branch-load-status" role="status">Choose a branch to load its prices.</div>
 
         <div class="product-search-wrap">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -1277,13 +1278,15 @@ s0.parentNode.insertBefore(s1,s0);
   const CATEGORIES = ['CAKE', 'PASTRY', 'BAKERY', 'SSMM', 'DRINKS', 'SANDWICH', 'SIGNS', 'CHOCOLATES', 'OCCASIONS'];
   let checked = {}, allProducts = [], productGroups = {}, activeCategory = '';
   let currentSlide = 0, slides = [], slideTimer = null;
+  let productLoadToken = 0, loadedPriceSheet = '';
 
   document.getElementById('dateField').valueAsDate = new Date();
 
   window.addEventListener('DOMContentLoaded', () => {
     initEmailVerification();
+    document.getElementById('branchField').addEventListener('change', event => loadProducts(event.target.value));
     loadBranches();
-    loadProducts();
+    loadProducts(''); // Don't show any prices until a branch is chosen.
     loadHolidays();
     loadPhotos();
     document.getElementById('productSearch').addEventListener('input', filterProducts);
@@ -1512,16 +1515,64 @@ s0.parentNode.insertBefore(s1,s0);
     return escapeHtml(value).replace(/'/g, '&#39;');
   }
 
-  /* ══ PRODUCTS ════════════════════════════════════════════════════════ */
-  function loadProducts() {
-    window._prodCb = function(res) {
-      if (res.success) onProductsLoaded(res.data);
-      else showLoadError('Failed to load products: ' + (res.error || 'Unknown'));
-    };
-    const s = document.createElement('script');
-    s.onerror = () => showLoadError('Could not reach server.');
-    s.src = APPS_SCRIPT_URL + '?action=getProducts&callback=_prodCb';
-    document.head.appendChild(s);
+  /* ══ BRANCH-BASED PRICE CATALOG ══════════════════════════════════════ */
+    // Centralized branch-to-price-sheet routing. Keep this in sync with Code.gs.
+    function getPriceSheetForBranch(branch) {
+      const value = String(branch || '').normalize('NFKD')
+        .toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+      if (!value) return '';
+      if (value.includes('FLY DUBAI') || value.includes('FLYDUBAI') || value === 'FD') return 'FD';
+      if (value.includes('ABU DHABI MALL') || value.includes('ABUDHABI MALL') ||
+          value.includes('AL WAHDA MALL') || value.includes('BAWABAT') ||
+          value.includes('KHALIDIY') || value.includes('YAS MALL') ||
+          value.includes('SHAMS BOUTI')) return 'AUH';
+      return 'Products'; // Barsha and all other branches
+    }
+
+  async function loadProducts(branch) {
+    const token = ++productLoadToken;
+    const sheetName = getPriceSheetForBranch(branch);
+    const loading = document.getElementById('loadingState');
+    const groups = document.getElementById('productGroups');
+    const status = document.getElementById('productPriceSource');
+
+    // Clear old branch data immediately to prevent mixed or stale prices.
+    checked = {};
+    allProducts = [];
+    productGroups = {};
+    loadedPriceSheet = '';
+    groups.style.display = 'none';
+    loading.style.display = 'block';
+    loading.innerHTML = '';
+    if (!sheetName) {
+      status.textContent = 'Choose a branch to load its prices.';
+      loading.innerHTML = '<p style="padding:15px 0;color:var(--clay-muted);">Select your branch above to view prices.</p>';
+      return;
+    }
+
+    status.textContent = 'Loading ' + sheetName + ' prices for ' + branch + '…';
+    loading.innerHTML = '<div class="skeleton-list">' +
+      '<div class="skeleton-item"></div>'.repeat(6) + '</div>';
+    try {
+      // This NEW action must return the actual priceSheet used, not just a product array.
+      const res = await jsonpRequest('getBranchProducts', { branch });
+      if (token !== productLoadToken) return; // Ignore a slower previous branch request.
+      if (!res || !res.success) throw new Error((res && res.error) || 'No data returned');
+      if (res.priceSheet !== sheetName) {
+        throw new Error('Expected ' + sheetName + ' but server returned ' +
+          (res.priceSheet || 'no sheet identifier') + '. Update Code.gs first.');
+      }
+      if (!Array.isArray(res.data) || !res.data.length) {
+        throw new Error('No products found in the ' + sheetName + ' tab.');
+      }
+      onProductsLoaded(res.data);
+      loadedPriceSheet = sheetName;
+      status.textContent = '✓ Showing prices from ' + sheetName + ' · ' + branch;
+    } catch (err) {
+      if (token !== productLoadToken) return;
+      status.textContent = '⚠ Prices could not be loaded for ' + branch;
+      showLoadError(err && err.message ? err.message : String(err));
+    }
   }
 
   function showLoadError(msg) {
@@ -1780,6 +1831,7 @@ s0.parentNode.insertBefore(s1,s0);
     if (!date) return showError('Please select a date.');
     if (document.getElementById('branchField').disabled) return showError('Branch list is not loaded yet. Please refresh or check the Google Sheet connection.');
     if (!branch) return showError('Please select your branch.');
+    if (loadedPriceSheet !== getPriceSheetForBranch(branch)) return showError('Branch prices are not ready. Please wait or check your Google Apps Script deployment.');
     if (!Object.keys(checked).length) return showError('Please select at least one product.');
 
     const selectedRows = Object.values(checked)
@@ -1796,6 +1848,7 @@ s0.parentNode.insertBefore(s1,s0);
       email,
       dateRequested: date,
       branch,
+      priceSheet: loadedPriceSheet, // Informational only: server MUST resolve from branch again.
       selectedRows,
       notes
     };
@@ -1843,7 +1896,8 @@ s0.parentNode.insertBefore(s1,s0);
     document.getElementById('branchField').value = '';
     document.getElementById('notesField').value = '';
     document.getElementById('productSearch').value = '';
-    checked = {}; updateBadge(); filterByCategory(activeCategory);
+    checked = {};
+    loadProducts(''); // Reset branch price state; no stale items from previous request.
     document.getElementById('formWrap').style.display = 'block';
     document.getElementById('successScreen').style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
