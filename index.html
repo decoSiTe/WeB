@@ -1163,7 +1163,6 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
       <div class="card">
         <div class="card-title">Select Price Tags</div>
         <div class="card-subtitle">Tick all items you need price tags for. Items are grouped by category.</div>
-        <div id="productPriceSource" class="branch-load-status" role="status">Choose a branch to load its prices.</div>
 
         <div class="product-search-wrap">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -1534,7 +1533,6 @@ s0.parentNode.insertBefore(s1,s0);
     const sheetName = getPriceSheetForBranch(branch);
     const loading = document.getElementById('loadingState');
     const groups = document.getElementById('productGroups');
-    const status = document.getElementById('productPriceSource');
 
     // Clear old branch data immediately to prevent mixed or stale prices.
     checked = {};
@@ -1545,12 +1543,10 @@ s0.parentNode.insertBefore(s1,s0);
     loading.style.display = 'block';
     loading.innerHTML = '';
     if (!sheetName) {
-      status.textContent = 'Choose a branch to load its prices.';
       loading.innerHTML = '<p style="padding:15px 0;color:var(--clay-muted);">Select your branch above to view prices.</p>';
       return;
     }
 
-    status.textContent = 'Loading ' + sheetName + ' prices for ' + branch + '…';
     loading.innerHTML = '<div class="skeleton-list">' +
       '<div class="skeleton-item"></div>'.repeat(6) + '</div>';
     try {
@@ -1567,10 +1563,8 @@ s0.parentNode.insertBefore(s1,s0);
       }
       onProductsLoaded(res.data);
       loadedPriceSheet = sheetName;
-      status.textContent = '✓ Showing prices from ' + sheetName + ' · ' + branch;
     } catch (err) {
       if (token !== productLoadToken) return;
-      status.textContent = '⚠ Prices could not be loaded for ' + branch;
       showLoadError(err && err.message ? err.message : String(err));
     }
   }
