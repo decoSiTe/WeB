@@ -1046,12 +1046,50 @@
     }
     /* The slot occupies the second position; do not add a third field below. */
     .flexway-switch-slot { width: 230px; max-width: 100%; min-width: 0; position: relative; }
-    .flexway-switch-slot.selected { width: 310px; }
+    .flexway-switch-slot.selected { width: 374px; }
     .flexway-switch-slot .email-choice { width: 100%; }
     #flexwayChoice.flx-hidden { display: none; }
     #flexwayPanel { display: none; border: 0; padding: 0; margin: 0; animation: none; }
     #flexwayPanel.active { display: block; border: 0; padding: 0; margin: 0; }
-    .flexway-pill-wrap { position: relative; width: 100%; padding-top: 0; }
+    .flexway-entry-row { display: flex; align-items: center; gap: 12px; width: 100%; }
+    .flexway-pill-wrap { position: relative; flex: 1 1 auto; min-width: 0; width: auto; padding-top: 0; }
+    /* Keep a fixed place for the check so the email input never moves while checking. */
+    .flexway-approved-check {
+      display: inline-flex; align-items: center; justify-content: center;
+      flex: 0 0 44px; width: 44px; height: 44px;
+      border-radius: 50%; color: white;
+      background: linear-gradient(145deg, #39df55, #1bbd38);
+      border: 2px solid rgba(10,151,37,.24);
+      box-shadow: inset 0 2px 3px rgba(255,255,255,.45), 0 2px 8px rgba(27,177,49,.20);
+      opacity: 0; visibility: hidden; transform: scale(.5);
+      pointer-events: none;
+    }
+    .flexway-approved-check.is-visible {
+      visibility: visible;
+      animation: flexway-check-pop .48s cubic-bezier(.18,1.6,.38,1) both;
+    }
+    .flexway-approved-check svg { width: 29px; height: 29px; fill: none; stroke: white; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+    .flexway-approved-check svg path { stroke-dasharray: 32; stroke-dashoffset: 32; }
+    .flexway-approved-check.is-visible svg path { animation: flexway-check-draw .36s ease-out .15s forwards; }
+    @keyframes flexway-check-pop {
+      0% { opacity: 0; transform: scale(.4) rotate(-12deg); }
+      68% { opacity: 1; transform: scale(1.12) rotate(3deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+    @keyframes flexway-check-draw { to { stroke-dashoffset: 0; } }
+    .flexway-inline-status { min-height: 0; margin-top: 5px; margin-right: 56px; text-align: center; font: 700 12px 'DM Sans', Arial, sans-serif; }
+    .flexway-inline-status:empty { display: none; }
+    .flexway-inline-status.error { color: #e02020; }
+    .flexway-inline-status.neutral { color: #756c81; }
+    /* Keep announcements available to screen readers without displaying duplicate text. */
+    .email-status.flexway-visually-hidden {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .flexway-approved-check.is-visible { opacity: 1; transform: none; animation: none; }
+      .flexway-approved-check.is-visible svg path { stroke-dashoffset: 0; animation: none; }
+    }
     .flexway-floating-label {
       position: absolute; z-index: 2; top: -12px; left: 31px;
       display: inline-block; width: auto; margin: 0; padding: 0 8px;
@@ -1168,16 +1206,22 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
                 </button>
                 <!-- Replaces the Flexway choice at exactly the same position. -->
                 <div class="email-auth-panel" id="flexwayPanel">
-                  <div class="flexway-pill-wrap">
-                    <label class="flexway-floating-label" for="flexwayEmailField">Flexway</label>
-                    <div class="flexway-email-pill">
-                      <img class="flexway-pill-icon" src="flex.png" alt="" aria-hidden="true" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
-                      <span class="flexway-logo-fallback" aria-hidden="true">K</span>
-                      <input type="email" id="flexwayEmailField" placeholder="Staff@flexway.com"
-                             autocomplete="email" inputmode="email" aria-label="Flexway email address"
-                             aria-describedby="emailStatus" spellcheck="false">
+                  <div class="flexway-entry-row">
+                    <div class="flexway-pill-wrap">
+                      <label class="flexway-floating-label" for="flexwayEmailField">Flexway</label>
+                      <div class="flexway-email-pill">
+                        <img class="flexway-pill-icon" src="flex.png" alt="" aria-hidden="true" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+                        <span class="flexway-logo-fallback" aria-hidden="true">K</span>
+                        <input type="email" id="flexwayEmailField" placeholder="Staff@flexway.com"
+                               autocomplete="email" inputmode="email" aria-label="Flexway email address"
+                               aria-describedby="emailStatus flexwayInlineStatus" spellcheck="false">
+                      </div>
                     </div>
+                    <span id="flexwayApprovedCheck" class="flexway-approved-check" role="img" aria-label="Approved email" aria-hidden="true">
+                      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 16.5l6.4 6.2L25 10.2" /></svg>
+                    </span>
                   </div>
+                  <div id="flexwayInlineStatus" class="flexway-inline-status" aria-live="off"></div>
                 </div>
               </div>
             </div>
@@ -1204,7 +1248,7 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
 
 
             <input type="hidden" id="emailField">
-            <div class="email-status neutral" id="emailStatus">Choose Google or Flexway to continue.</div>
+            <div class="email-status neutral" id="emailStatus" role="status" aria-live="polite">Choose Google or Flexway to continue.</div>
           </div>
         </div>
 
@@ -1512,7 +1556,7 @@ s0.parentNode.insertBefore(s1,s0);
       verifiedEmail = email;
       verifiedEmailMethod = 'flexway';
       document.getElementById('emailField').value = email;
-      setEmailStatus('ok', '✓ Approved Flexway email: ' + email);
+      setEmailStatus('ok', 'Approved Flexway email.');
       return true;
     } catch (err) {
       if (sequence === flexwayCheckSequence && selectedEmailMethod === 'flexway') {
@@ -1532,8 +1576,33 @@ s0.parentNode.insertBefore(s1,s0);
   function setEmailStatus(type, message) {
     const status = document.getElementById('emailStatus');
     if (!status) return;
-    status.className = 'email-status ' + type;
+    const isFlexway = selectedEmailMethod === 'flexway';
+    // Google messages stay in their original position. For Flexway, screen readers
+    // still get the announcement while the visible success message is replaced by a check.
+    status.className = 'email-status ' + type + (isFlexway ? ' flexway-visually-hidden' : '');
     status.textContent = message;
+
+    const indicator = document.getElementById('flexwayApprovedCheck');
+    const approved = isFlexway && type === 'ok' && verifiedEmailMethod === 'flexway' && !!verifiedEmail;
+    if (indicator) {
+      indicator.classList.toggle('is-visible', approved);
+      indicator.setAttribute('aria-hidden', String(!approved));
+      // Re-arm the drawn stroke so every newly approved address animates.
+      if (!approved) {
+        const path = indicator.querySelector('path');
+        if (path) path.style.removeProperty('animation');
+      }
+    }
+
+    const inlineStatus = document.getElementById('flexwayInlineStatus');
+    if (inlineStatus) {
+      // Only errors and active checks appear below the email field.
+      const showError = isFlexway && type === 'error';
+      const showChecking = isFlexway && type === 'neutral' && /^Checking approved email/i.test(message);
+      inlineStatus.className = 'flexway-inline-status' + (showError ? ' error' : showChecking ? ' neutral' : '');
+      inlineStatus.textContent = showError ? (message === 'Invalid email' ? 'Invalid Email' : message)
+        : showChecking ? 'Checking email…' : '';
+    }
   }
 
   async function getValidatedEmailForSubmit() {
