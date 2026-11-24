@@ -1194,6 +1194,73 @@
       .flexway-switch-slot,
       .flexway-switch-slot.selected { width: 100%; }
     }
+
+    /* SNS: three centered compact choices; the third option is a non-active preview. */
+    .email-choice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      justify-content: stretch;
+      align-items: start;
+      gap: 16px 18px;
+      padding: 10px 0 12px;
+    }
+    /* Give the editable Flexway field a little extra room after it is selected. */
+    .email-choice-grid.flexway-selected {
+      grid-template-columns: minmax(0, .90fr) minmax(0, 1.40fr) minmax(0, .90fr);
+    }
+    .google-switch-slot,
+    .flexway-switch-slot,
+    .flexway-switch-slot.selected,
+    .sns-switch-slot {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      position: relative;
+    }
+    .sns-switch-slot .email-choice {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 49px;
+      gap: 12px;
+      padding: 9px 16px;
+    }
+    /* SNS is informational: retain its neutral white pill after a click. */
+    .sns-switch-slot .email-choice:hover,
+    .sns-switch-slot .email-choice:active {
+      transform: none;
+      background: rgba(255,255,255,.90);
+      border-color: rgba(182,168,203,.25);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,.92), 0 3px 12px rgba(90,72,119,.07);
+    }
+    .sns-logo-fallback {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 24px; height: 24px;
+      flex: 0 0 24px;
+      border-radius: 50%;
+      background: #272b3c;
+      color: white;
+      font: 900 19px Arial, sans-serif;
+    }
+    .sns-coming-soon {
+      display: none;
+      margin: 2px 0 0;
+      text-align: center;
+      color: #292335;
+      font: 600 12px 'DM Sans', Arial, sans-serif;
+      animation: fadeIn .22s ease;
+    }
+    .sns-coming-soon.visible { display: block; }
+    @media (max-width: 700px) {
+      .email-choice-grid,
+      .email-choice-grid.flexway-selected {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+    }
   </style>
 
   <link rel="icon" type="image/png" href="favicon.png">
@@ -1295,6 +1362,17 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
                   </div>
                   <div id="flexwayInlineStatus" class="flexway-inline-status" aria-live="off"></div>
                 </div>
+              </div>
+              <!-- SNS is a preview-only option, not an email verification provider. -->
+              <div class="sns-switch-slot" id="snsSwitchSlot">
+                <button type="button" class="email-choice" id="snsChoice"
+                        onclick="showSNSComingSoon()" aria-describedby="snsComingSoon">
+                  <img class="email-choice-logo" src="tmblr.png" alt="" aria-hidden="true"
+                       onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+                  <span class="sns-logo-fallback" aria-hidden="true">t</span>
+                  <span>SNS</span>
+                </button>
+                <div id="snsComingSoon" class="sns-coming-soon" role="status" aria-live="polite">Coming Soon!</div>
               </div>
             </div>
 
@@ -1526,6 +1604,9 @@ s0.parentNode.insertBefore(s1,s0);
   }
 
   function selectEmailMethod(method) {
+    document.getElementById('snsComingSoon').classList.remove('visible');
+    document.getElementById('snsChoice').setAttribute('aria-expanded', 'false');
+    document.querySelector('.email-choice-grid').classList.toggle('flexway-selected', method === 'flexway');
     invalidateFlexwayCheck(); // Ignore responses from earlier email checks or methods.
     selectedEmailMethod = method;
     ['google', 'flexway'].forEach(option => {
@@ -1554,6 +1635,14 @@ s0.parentNode.insertBefore(s1,s0);
         if (selectedEmailMethod === 'flexway') document.getElementById('flexwayEmailField').focus();
       }, 50);
     }
+  }
+
+  function showSNSComingSoon() {
+    // SNS cannot verify an email yet, so clear any previously chosen provider.
+    selectEmailMethod('');
+    setEmailStatus('neutral', '');
+    document.getElementById('snsComingSoon').classList.add('visible');
+    document.getElementById('snsChoice').setAttribute('aria-expanded', 'true');
   }
 
   function handleGoogleCredentialResponse(response) {
@@ -2174,6 +2263,9 @@ s0.parentNode.insertBefore(s1,s0);
   }
 
   function resetForm() {
+    document.getElementById('snsComingSoon').classList.remove('visible');
+    document.getElementById('snsChoice').setAttribute('aria-expanded', 'false');
+    document.querySelector('.email-choice-grid').classList.remove('flexway-selected');
     invalidateFlexwayCheck();
     selectedEmailMethod = '';
     verifiedEmail = '';
