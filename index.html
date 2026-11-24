@@ -1015,6 +1015,78 @@
         transition-duration: 0.01ms !important;
       }
     }
+
+    /* KPRF Email Verification: a selection pill that becomes the input IN PLACE. */
+    .email-auth-box { border-radius: 30px; padding: 16px 17px 18px; }
+    .email-choice-grid {
+      display: flex; flex-wrap: wrap; justify-content: flex-start;
+      align-items: center; gap: 16px 22px; grid-template-columns: none;
+      padding: 10px 0 12px; margin-bottom: 4px;
+    }
+    .email-choice {
+      min-height: 49px; width: 230px; max-width: 100%; display: inline-flex;
+      align-items: center; justify-content: flex-start; gap: 14px;
+      padding: 9px 16px; border: 1px solid rgba(182,168,203,.25);
+      border-radius: 999px; background: rgba(255,255,255,.90);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,.92), 0 3px 12px rgba(90,72,119,.07);
+      color: #292335; font: 800 13px 'DM Sans', Arial, sans-serif;
+      cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease;
+    }
+    .email-choice:hover, .email-choice.active {
+      background: #fff; border-color: rgba(124,58,237,.52);
+      box-shadow: 0 4px 15px rgba(124,58,237,.14), 0 0 0 3px rgba(124,58,237,.08);
+      transform: none;
+    }
+    .email-choice-logo { width: 24px; height: 24px; object-fit: contain; flex: 0 0 24px; }
+    .google-logo-svg { width: 23px; height: 23px; flex: 0 0 23px; display: block; }
+    .flexway-logo-fallback {
+      display: none; align-items: center; justify-content: center;
+      width: 24px; height: 24px; flex: 0 0 24px;
+      font: 900 21px 'Nunito',sans-serif; color: #d52688;
+    }
+    /* The slot occupies the second position; do not add a third field below. */
+    .flexway-switch-slot { width: 230px; max-width: 100%; min-width: 0; position: relative; }
+    .flexway-switch-slot.selected { width: 310px; }
+    .flexway-switch-slot .email-choice { width: 100%; }
+    #flexwayChoice.flx-hidden { display: none; }
+    #flexwayPanel { display: none; border: 0; padding: 0; margin: 0; animation: none; }
+    #flexwayPanel.active { display: block; border: 0; padding: 0; margin: 0; }
+    .flexway-pill-wrap { position: relative; width: 100%; padding-top: 0; }
+    .flexway-floating-label {
+      position: absolute; z-index: 2; top: -12px; left: 31px;
+      display: inline-block; width: auto; margin: 0; padding: 0 8px;
+      color: #332f3a; background: #faf8fd;
+      font: 500 13px 'DM Sans', Arial, sans-serif;
+      letter-spacing: 0; text-transform: none;
+    }
+    .flexway-email-pill {
+      display: flex; align-items: center; gap: 12px;
+      height: 49px; padding: 4px 13px 4px 12px;
+      border: 1px solid #a78bfa; border-radius: 999px;
+      background: rgba(255,255,255,.98);
+      box-shadow: 0 0 0 3px rgba(124,58,237,.13), 0 4px 14px rgba(124,58,237,.11);
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .flexway-email-pill:focus-within {
+      border-color: #9564fb; box-shadow: 0 0 0 3px rgba(124,58,237,.17), 0 4px 14px rgba(124,58,237,.12);
+    }
+    .flexway-pill-icon { width: 24px; height: 24px; flex: 0 0 24px; object-fit: contain; }
+    .flexway-email-pill #flexwayEmailField {
+      display: block; flex: 1; width: 100%; min-width: 0;
+      min-height: 0; max-width: none; height: 35px; margin: 0; padding: 0;
+      border: 0; border-radius: 0; outline: none;
+      color: #332f3a; background: transparent; box-shadow: none; transform: none;
+      font: 500 13px 'DM Sans', Arial, sans-serif;
+    }
+    .flexway-email-pill #flexwayEmailField:focus { border: 0; background: transparent; box-shadow: none; transform: none; }
+    .flexway-email-pill #flexwayEmailField::placeholder { color: #726977; opacity: 1; }
+    /* The Google sign-in panel remains below the selection row, as before. */
+    #googlePanel.active { margin-top: 12px; }
+    @media (max-width: 700px) {
+      .email-choice-grid { gap: 16px; }
+      .email-choice, .flexway-switch-slot, .flexway-switch-slot.selected { width: 100%; }
+      .email-choice { min-width: 0; }
+    }
   </style>
 
   <link rel="icon" type="image/png" href="favicon.png">
@@ -1082,14 +1154,31 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
         <div class="form-group">
           <label>Email Verification <span class="req">*</span></label>
           <div class="email-auth-box">
-            <div class="email-choice-grid">
-              <div class="email-choice" id="googleChoice" onclick="selectEmailMethod('google')" role="button" tabindex="0">
-                <div class="email-choice-head"><span class="email-radio-dot"></span> Login with Google</div>
-                <small>Use this option for a verified Google account, such as @gmail.com.</small>
-              </div>
-              <div class="email-choice" id="flexwayChoice" onclick="selectEmailMethod('flexway')" role="button" tabindex="0">
-                <div class="email-choice-head"><span class="email-radio-dot"></span> Use Flexway Email</div>
-                <small>Type a valid company email, ending with "@flexway.com" </small>
+            <div class="email-choice-grid" role="group" aria-label="Choose email verification method">
+              <button type="button" class="email-choice" id="googleChoice" onclick="selectEmailMethod('google')" aria-pressed="false">
+                <!-- Local inline G mark avoids broken external logo URLs. -->
+                <svg class="google-logo-svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.25c0-.68-.06-1.36-.18-2.01H12v3.8h5.26a4.49 4.49 0 0 1-1.96 2.95v2.45h3.18c1.86-1.71 2.87-4.23 2.87-7.19Z"/><path fill="#34A853" d="M12 21.8c2.65 0 4.88-.88 6.5-2.36l-3.18-2.45c-.88.59-2 .94-3.32.94-2.55 0-4.72-1.72-5.49-4.04H3.23v2.55A9.8 9.8 0 0 0 12 21.8Z"/><path fill="#FBBC05" d="M6.51 13.89a5.93 5.93 0 0 1 0-3.78V7.56H3.23a9.81 9.81 0 0 0 0 8.88l3.28-2.55Z"/><path fill="#EA4335" d="M12 6.07c1.44 0 2.73.5 3.75 1.46l2.8-2.8A9.52 9.52 0 0 0 12 2.2a9.8 9.8 0 0 0-8.77 5.36l3.28 2.55c.77-2.32 2.94-4.04 5.49-4.04Z"/></svg>
+                <span>Google</span>
+              </button>
+              <div class="flexway-switch-slot" id="flexwaySwitchSlot">
+                <button type="button" class="email-choice" id="flexwayChoice" onclick="selectEmailMethod('flexway')" aria-pressed="false">
+                  <img class="email-choice-logo" src="flex.png" alt="" aria-hidden="true" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+                  <span class="flexway-logo-fallback" aria-hidden="true">K</span>
+                  <span>Flexway</span>
+                </button>
+                <!-- Replaces the Flexway choice at exactly the same position. -->
+                <div class="email-auth-panel" id="flexwayPanel">
+                  <div class="flexway-pill-wrap">
+                    <label class="flexway-floating-label" for="flexwayEmailField">Flexway</label>
+                    <div class="flexway-email-pill">
+                      <img class="flexway-pill-icon" src="flex.png" alt="" aria-hidden="true" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
+                      <span class="flexway-logo-fallback" aria-hidden="true">K</span>
+                      <input type="email" id="flexwayEmailField" placeholder="Staff@flexway.com"
+                             autocomplete="email" inputmode="email" aria-label="Flexway email address"
+                             aria-describedby="emailStatus" spellcheck="false">
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1113,13 +1202,9 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
               <div class="email-help-text">The signed-in Google email will be used for this request.</div>
             </div>
 
-            <div class="email-auth-panel" id="flexwayPanel">
-              <input type="email" id="flexwayEmailField" placeholder="name@flexway.com" autocomplete="email">
-              <div class="email-help-text">Only emails ending with <strong>@flexway.com</strong> are accepted here.</div>
-            </div>
 
             <input type="hidden" id="emailField">
-            <div class="email-status neutral" id="emailStatus">Choose Google login or enter a Flexway email before submitting.</div>
+            <div class="email-status neutral" id="emailStatus">Choose Google or Flexway to continue.</div>
           </div>
         </div>
 
@@ -1291,35 +1376,35 @@ s0.parentNode.insertBefore(s1,s0);
     document.getElementById('productSearch').addEventListener('input', filterProducts);
   });
 
-  /* ══ EMAIL VERIFICATION ══════════════════════════════════════════════ */
+  /* ══ EMAIL VERIFICATION — Google or Emails-sheet approved Flexway ═════ */
   let selectedEmailMethod = '';
   let verifiedEmail = '';
   let verifiedEmailMethod = '';
+  let flexwayCheckTimer = null;
+  let flexwayCheckSequence = 0;
+
+  function invalidateFlexwayCheck() {
+    if (flexwayCheckTimer) clearTimeout(flexwayCheckTimer);
+    flexwayCheckTimer = null;
+    flexwayCheckSequence += 1;
+  }
 
   function initEmailVerification() {
-    const flexwayField = document.getElementById('flexwayEmailField');
-    if (flexwayField) {
-      flexwayField.addEventListener('input', validateFlexwayEmailLive);
-    }
-
-    ['googleChoice', 'flexwayChoice'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          selectEmailMethod(id === 'googleChoice' ? 'google' : 'flexway');
-        }
-      });
-    });
+    document.getElementById('flexwayEmailField').addEventListener('input', validateFlexwayEmailLive);
   }
 
   function selectEmailMethod(method) {
+    invalidateFlexwayCheck(); // Ignore responses from earlier email checks or methods.
     selectedEmailMethod = method;
-    document.getElementById('googleChoice').classList.toggle('active', method === 'google');
-    document.getElementById('flexwayChoice').classList.toggle('active', method === 'flexway');
-    document.getElementById('googlePanel').classList.toggle('active', method === 'google');
-    document.getElementById('flexwayPanel').classList.toggle('active', method === 'flexway');
+    ['google', 'flexway'].forEach(option => {
+      const choice = document.getElementById(option + 'Choice');
+      choice.classList.toggle('active', method === option);
+      choice.setAttribute('aria-pressed', String(method === option));
+      document.getElementById(option + 'Panel').classList.toggle('active', method === option);
+    });
+
+    document.getElementById('flexwaySwitchSlot').classList.toggle('selected', method === 'flexway');
+    document.getElementById('flexwayChoice').classList.toggle('flx-hidden', method === 'flexway');
 
     verifiedEmail = '';
     verifiedEmailMethod = '';
@@ -1327,10 +1412,12 @@ s0.parentNode.insertBefore(s1,s0);
     document.getElementById('googleVerifiedPill').classList.remove('show');
 
     if (method === 'google') {
-      setEmailStatus('neutral', 'Please sign in with Google to verify your email.');
+      setEmailStatus('neutral', 'Sign in using the Google button below.');
     } else {
       validateFlexwayEmailLive();
-      setTimeout(() => document.getElementById('flexwayEmailField').focus(), 50);
+      setTimeout(() => {
+        if (selectedEmailMethod === 'flexway') document.getElementById('flexwayEmailField').focus();
+      }, 50);
     }
   }
 
@@ -1349,13 +1436,14 @@ s0.parentNode.insertBefore(s1,s0);
         return;
       }
 
+      invalidateFlexwayCheck();
       selectedEmailMethod = 'google';
       verifiedEmail = email;
       verifiedEmailMethod = 'google';
       document.getElementById('emailField').value = email;
       document.getElementById('googleVerifiedPill').textContent = '✓ ' + email;
       document.getElementById('googleVerifiedPill').classList.add('show');
-      setEmailStatus('ok', 'Google account verified: ' + email);
+      setEmailStatus('ok', 'Google account: ' + email);
     } catch (err) {
       clearVerifiedEmail('Google sign-in failed. Please try again.');
     }
@@ -1370,27 +1458,68 @@ s0.parentNode.insertBefore(s1,s0);
     return JSON.parse(jsonPayload);
   }
 
+  /* Debounce checks so we don't contact the Apps Script endpoint on every keystroke. */
   function validateFlexwayEmailLive() {
     if (selectedEmailMethod !== 'flexway') return false;
-    const field = document.getElementById('flexwayEmailField');
-    const email = String(field.value || '').trim().toLowerCase();
-    const isValid = /^[a-z0-9._%+-]+@flexway\.com$/i.test(email);
+    invalidateFlexwayCheck();
+    verifiedEmail = '';
+    verifiedEmailMethod = '';
+    document.getElementById('emailField').value = '';
 
+    const email = document.getElementById('flexwayEmailField').value.trim().toLowerCase();
     if (!email) {
-      clearVerifiedEmail('Enter your @flexway.com email address.');
+      setEmailStatus('neutral', 'Enter your Flexway email address.');
+      return false;
+    }
+    if (!/^[a-z0-9._%+-]+@flexway\.com$/i.test(email)) {
+      setEmailStatus('error', 'Invalid email');
       return false;
     }
 
-    if (!isValid) {
-      clearVerifiedEmail('Only a valid @flexway.com email is accepted for this option.');
+    setEmailStatus('neutral', 'Checking approved email…');
+    const requestSequence = flexwayCheckSequence;
+    flexwayCheckTimer = setTimeout(() => {
+      flexwayCheckTimer = null;
+      checkFlexwayEmailAgainstSheet(email, requestSequence);
+    }, 450);
+    return false; // Validation completes asynchronously.
+  }
+
+  async function checkFlexwayEmailAgainstSheet(email, sequence) {
+    try {
+      // This endpoint returns only a yes/no result; it does not disclose the Emails list.
+      const res = window.google && google.script && google.script.run
+        ? await new Promise((resolve, reject) => {
+            google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)
+              .checkFlexwayEmail(email);
+          })
+        : await jsonpRequest('checkFlexwayEmail', { email }, 20000);
+
+      if (sequence !== flexwayCheckSequence || selectedEmailMethod !== 'flexway' ||
+          document.getElementById('flexwayEmailField').value.trim().toLowerCase() !== email) {
+        return false;
+      }
+
+      if (!res || res.success !== true) {
+        clearVerifiedEmail('Could not check the Emails sheet. Please try again.');
+        return false;
+      }
+      if (!res.allowed) {
+        clearVerifiedEmail('Invalid email');
+        return false;
+      }
+
+      verifiedEmail = email;
+      verifiedEmailMethod = 'flexway';
+      document.getElementById('emailField').value = email;
+      setEmailStatus('ok', '✓ Approved Flexway email: ' + email);
+      return true;
+    } catch (err) {
+      if (sequence === flexwayCheckSequence && selectedEmailMethod === 'flexway') {
+        clearVerifiedEmail('Email check unavailable. Please try again.');
+      }
       return false;
     }
-
-    verifiedEmail = email;
-    verifiedEmailMethod = 'flexway';
-    document.getElementById('emailField').value = email;
-    setEmailStatus('ok', 'Flexway email accepted: ' + email);
-    return true;
   }
 
   function clearVerifiedEmail(message) {
@@ -1407,12 +1536,11 @@ s0.parentNode.insertBefore(s1,s0);
     status.textContent = message;
   }
 
-  function getValidatedEmailForSubmit() {
+  async function getValidatedEmailForSubmit() {
     if (!selectedEmailMethod) {
-      showError('Please choose one email option: Login with Google or use your @flexway.com email.');
+      showError('Choose Google or Flexway before submitting.');
       return '';
     }
-
     if (selectedEmailMethod === 'google') {
       if (!verifiedEmail || verifiedEmailMethod !== 'google') {
         showError('Please complete Google sign-in before submitting.');
@@ -1422,17 +1550,27 @@ s0.parentNode.insertBefore(s1,s0);
     }
 
     if (selectedEmailMethod === 'flexway') {
-      if (!validateFlexwayEmailLive()) {
-        showError('Please enter a valid @flexway.com email before submitting.');
+      const email = document.getElementById('flexwayEmailField').value.trim().toLowerCase();
+      if (!/^[a-z0-9._%+-]+@flexway\.com$/i.test(email)) {
+        clearVerifiedEmail('Invalid email');
+        showError('Invalid email');
         return '';
       }
-      return verifiedEmail;
-    }
+      if (verifiedEmailMethod === 'flexway' && verifiedEmail === email) return email;
 
+      // Submit can be clicked while the user is still typing: check immediately.
+      invalidateFlexwayCheck();
+      setEmailStatus('neutral', 'Checking approved email…');
+      const permitted = await checkFlexwayEmailAgainstSheet(email, flexwayCheckSequence);
+      if (!permitted) {
+        showError(document.getElementById('emailStatus').textContent || 'Invalid email');
+        return '';
+      }
+      return email;
+    }
     showError('Please complete email verification before submitting.');
     return '';
   }
-
 
 
   /* ══ BRANCHES FROM GOOGLE SHEET ══════════════════════════════════════
@@ -1816,7 +1954,7 @@ s0.parentNode.insertBefore(s1,s0);
     const errorAlert = document.getElementById('errorAlert');
     errorAlert.style.display = 'none';
 
-    const email  = getValidatedEmailForSubmit();
+    const email  = await getValidatedEmailForSubmit();
     const date   = document.getElementById('dateField').value;
     const branch = document.getElementById('branchField').value;
     const notes  = document.getElementById('notesField').value.trim();
@@ -1840,6 +1978,7 @@ s0.parentNode.insertBefore(s1,s0);
     // Code.gs rebuilds the exact selected products from these unique row numbers.
     const payload = {
       email,
+      emailMethod: selectedEmailMethod,
       dateRequested: date,
       branch,
       priceSheet: loadedPriceSheet, // Informational only: server MUST resolve from branch again.
@@ -1875,17 +2014,22 @@ s0.parentNode.insertBefore(s1,s0);
   }
 
   function resetForm() {
+    invalidateFlexwayCheck();
     selectedEmailMethod = '';
     verifiedEmail = '';
     verifiedEmailMethod = '';
     document.getElementById('emailField').value = '';
     document.getElementById('flexwayEmailField').value = '';
     document.getElementById('googleChoice').classList.remove('active');
+    document.getElementById('googleChoice').setAttribute('aria-pressed', 'false');
     document.getElementById('flexwayChoice').classList.remove('active');
+    document.getElementById('flexwayChoice').setAttribute('aria-pressed', 'false');
+    document.getElementById('flexwaySwitchSlot').classList.remove('selected');
+    document.getElementById('flexwayChoice').classList.remove('flx-hidden');
     document.getElementById('googlePanel').classList.remove('active');
     document.getElementById('flexwayPanel').classList.remove('active');
     document.getElementById('googleVerifiedPill').classList.remove('show');
-    setEmailStatus('neutral', 'Choose Google login or enter a Flexway email before submitting.');
+    setEmailStatus('neutral', 'Choose Google or Flexway to continue.');
     document.getElementById('dateField').valueAsDate = new Date();
     document.getElementById('branchField').value = '';
     document.getElementById('notesField').value = '';
