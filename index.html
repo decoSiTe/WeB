@@ -1150,63 +1150,49 @@
       .email-choice { min-width: 0; }
     }
 
-    /* Matching full-width, centered Google/Flexway choices (reference screenshot). */
+    /* Compact, original-sized buttons; center each logo + label within its pill. */
     .email-choice-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      align-items: start;
-      gap: 22px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 16px 22px;
       width: 100%;
-      padding: 9px 0 11px;
+      padding: 10px 0 12px;
     }
     .google-switch-slot,
-    .flexway-switch-slot,
-    .flexway-switch-slot.selected {
-      width: 100%;
+    .flexway-switch-slot {
+      width: 230px;
+      max-width: 100%;
       min-width: 0;
-      max-width: none;
     }
+    .flexway-switch-slot.selected { width: 374px; }
     .google-switch-slot .email-choice,
     .flexway-switch-slot .email-choice {
       width: 100%;
-      min-height: 72px;
-      display: flex;
+      min-height: 49px;
+      padding: 9px 16px;
+      display: inline-flex;
       justify-content: center;
       align-items: center;
-      gap: 18px;
-      border: 1px solid #e8e0ef;
+      gap: 12px;
+      border: 1px solid rgba(182,168,203,.25);
       border-radius: 999px;
-      background: rgba(255,255,255,.95);
+      background: rgba(255,255,255,.90);
       color: #292335;
-      font: 800 18px 'Nunito', 'DM Sans', sans-serif;
-      box-shadow: 0 3px 13px rgba(90,72,119,.07), inset 0 1px 2px rgba(255,255,255,.95);
+      font: 800 13px 'DM Sans', Arial, sans-serif;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,.92), 0 3px 12px rgba(90,72,119,.07);
     }
-    .google-switch-slot .email-choice:hover,
-    .flexway-switch-slot .email-choice:hover {
-      background: #fff;
-      border-color: #d3b9fc;
+    .google-logo-svg { width: 23px; height: 23px; flex: 0 0 23px; }
+    .email-choice-logo, .flexway-logo-fallback {
+      width: 24px; height: 24px; flex: 0 0 24px;
     }
-    .google-logo-svg,
-    .email-choice-logo {
-      width: 34px;
-      height: 34px;
-      flex-basis: 34px;
-    }
-    .flexway-logo-fallback {
-      width: 34px; height: 34px; flex-basis: 34px;
-    }
-    .google-native-signin { justify-content: center; min-height: 72px; }
-    /* Allow enough room for the email field and animated check after choosing Flexway. */
-    @media (min-width: 701px) {
-      .email-choice-grid:has(.flexway-switch-slot.selected) {
-        grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
-      }
-    }
+    .google-native-signin { min-height: 49px; justify-content: flex-start; }
     @media (max-width: 700px) {
-      .email-choice-grid { grid-template-columns: 1fr; gap: 14px; }
-      .google-switch-slot .email-choice,
-      .flexway-switch-slot .email-choice { min-height: 62px; font-size: 16px; }
-      .google-native-signin { justify-content: center; min-height: 62px; }
+      .email-choice-grid { gap: 14px; }
+      .google-switch-slot,
+      .flexway-switch-slot,
+      .flexway-switch-slot.selected { width: 100%; }
     }
   </style>
 
