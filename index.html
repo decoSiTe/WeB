@@ -1118,8 +1118,32 @@
     }
     .flexway-email-pill #flexwayEmailField:focus { border: 0; background: transparent; box-shadow: none; transform: none; }
     .flexway-email-pill #flexwayEmailField::placeholder { color: #726977; opacity: 1; }
-    /* The Google sign-in panel remains below the selection row, as before. */
-    #googlePanel.active { margin-top: 12px; }
+    /* Google uses the genuine Google Identity Services button, not a simulated sign-in. */
+    .google-switch-slot { width: 230px; max-width: 100%; min-width: 0; position: relative; }
+    .google-switch-slot .email-choice { width: 100%; }
+    #googleChoice.google-hidden { display: none; }
+    .google-native-signin { display: none; min-height: 49px; width: 100%; align-items: center; }
+    .google-switch-slot.selected .google-native-signin { display: flex; }
+    /* GIS controls its own official account label, icon and accessibility markup. */
+    .google-native-signin > div { max-width: 100%; }
+    .google-loading-pill {
+      width: 100%; min-height: 49px; display: flex; align-items: center;
+      border: 1px solid #c9b5f7; border-radius: 999px; background: #fff;
+      color: #6f647a; padding: 9px 15px; font: 600 12px 'DM Sans', Arial, sans-serif;
+    }
+    .google-verified-indicator {
+      display: none; color: #109735; margin-left: 8px;
+      font-size: 23px; font-weight: 900; line-height: 1;
+    }
+    .google-verified-indicator.show { display: inline-flex; }
+    /* Keep neutral/success notifications accessible, but never show extra helper text. */
+    .email-status.kprf-visually-hidden {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+    @media (max-width: 700px) {
+      .google-switch-slot { width: 100%; }
+    }
     @media (max-width: 700px) {
       .email-choice-grid { gap: 16px; }
       .email-choice, .flexway-switch-slot, .flexway-switch-slot.selected { width: 100%; }
@@ -1193,11 +1217,14 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
           <label>Email Verification <span class="req">*</span></label>
           <div class="email-auth-box">
             <div class="email-choice-grid" role="group" aria-label="Choose email verification method">
-              <button type="button" class="email-choice" id="googleChoice" onclick="selectEmailMethod('google')" aria-pressed="false">
-                <!-- Local inline G mark avoids broken external logo URLs. -->
-                <svg class="google-logo-svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.25c0-.68-.06-1.36-.18-2.01H12v3.8h5.26a4.49 4.49 0 0 1-1.96 2.95v2.45h3.18c1.86-1.71 2.87-4.23 2.87-7.19Z"/><path fill="#34A853" d="M12 21.8c2.65 0 4.88-.88 6.5-2.36l-3.18-2.45c-.88.59-2 .94-3.32.94-2.55 0-4.72-1.72-5.49-4.04H3.23v2.55A9.8 9.8 0 0 0 12 21.8Z"/><path fill="#FBBC05" d="M6.51 13.89a5.93 5.93 0 0 1 0-3.78V7.56H3.23a9.81 9.81 0 0 0 0 8.88l3.28-2.55Z"/><path fill="#EA4335" d="M12 6.07c1.44 0 2.73.5 3.75 1.46l2.8-2.8A9.52 9.52 0 0 0 12 2.2a9.8 9.8 0 0 0-8.77 5.36l3.28 2.55c.77-2.32 2.94-4.04 5.49-4.04Z"/></svg>
-                <span>Google</span>
-              </button>
+              <div class="google-switch-slot" id="googleSwitchSlot">
+                <button type="button" class="email-choice" id="googleChoice" onclick="selectEmailMethod('google')" aria-pressed="false">
+                  <svg class="google-logo-svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.25c0-.68-.06-1.36-.18-2.01H12v3.8h5.26a4.49 4.49 0 0 1-1.96 2.95v2.45h3.18c1.86-1.71 2.87-4.23 2.87-7.19Z"/><path fill="#34A853" d="M12 21.8c2.65 0 4.88-.88 6.5-2.36l-3.18-2.45c-.88.59-2 .94-3.32.94-2.55 0-4.72-1.72-5.49-4.04H3.23v2.55A9.8 9.8 0 0 0 12 21.8Z"/><path fill="#FBBC05" d="M6.51 13.89a5.93 5.93 0 0 1 0-3.78V7.56H3.23a9.81 9.81 0 0 0 0 8.88l3.28-2.55Z"/><path fill="#EA4335" d="M12 6.07c1.44 0 2.73.5 3.75 1.46l2.8-2.8A9.52 9.52 0 0 0 12 2.2a9.8 9.8 0 0 0-8.77 5.36l3.28 2.55c.77-2.32 2.94-4.04 5.49-4.04Z"/></svg>
+                  <span>Google</span>
+                </button>
+                <!-- The official, personalized Google button takes the choice's place. -->
+                <div id="googleNativeSignin" class="google-native-signin" aria-label="Sign in with Google"></div>
+              </div>
               <div class="flexway-switch-slot" id="flexwaySwitchSlot">
                 <button type="button" class="email-choice" id="flexwayChoice" onclick="selectEmailMethod('flexway')" aria-pressed="false">
                   <img class="email-choice-logo" src="flex.png" alt="" aria-hidden="true" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'">
@@ -1226,29 +1253,8 @@ Before submitting your request, kindly ensure that you have carefully reviewed a
               </div>
             </div>
 
-            <div class="email-auth-panel" id="googlePanel">
-              <div id="g_id_onload"
-                   data-client_id="1053548294778-ik9od282c0mi2f7flc4evj7b2l6ll04m.apps.googleusercontent.com"
-                   data-callback="handleGoogleCredentialResponse"
-                   data-auto_prompt="false">
-              </div>
-              <div class="google-auth-row">
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-size="large"
-                     data-theme="outline"
-                     data-text="signin_with"
-                     data-shape="pill"
-                     data-logo_alignment="left">
-                </div>
-                <span class="verified-pill" id="googleVerifiedPill">✓ Google account verified</span>
-              </div>
-              <div class="email-help-text">The signed-in Google email will be used for this request.</div>
-            </div>
-
-
             <input type="hidden" id="emailField">
-            <div class="email-status neutral" id="emailStatus" role="status" aria-live="polite">Choose Google or Flexway to continue.</div>
+            <div class="email-status neutral kprf-visually-hidden" id="emailStatus" role="status" aria-live="polite"></div>
           </div>
         </div>
 
@@ -1426,6 +1432,43 @@ s0.parentNode.insertBefore(s1,s0);
   let verifiedEmailMethod = '';
   let flexwayCheckTimer = null;
   let flexwayCheckSequence = 0;
+  const GOOGLE_CLIENT_ID = '1053548294778-ik9od282c0mi2f7flc4evj7b2l6ll04m.apps.googleusercontent.com';
+  let googleSigninRendered = false;
+  let googleSigninLoadingAttempts = 0;
+
+  function renderOfficialGoogleButton() {
+    if (googleSigninRendered) return;
+    const slot = document.getElementById('googleNativeSignin');
+    if (!slot) return;
+    if (window.google && google.accounts && google.accounts.id && google.accounts.id.renderButton) {
+      try {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredentialResponse,
+          auto_select: false
+        });
+        slot.replaceChildren();
+        google.accounts.id.renderButton(slot, {
+          type: 'standard', theme: 'outline', size: 'large',
+          text: 'signin_with', shape: 'pill',
+          logo_alignment: 'left', width: 230
+        });
+        googleSigninRendered = true;
+      } catch (err) {
+        slot.innerHTML = '<span class="google-loading-pill">Google Sign-In unavailable. Refresh the page.</span>';
+        setEmailStatus('error', 'Unable to load Google Sign-In. Please refresh.');
+      }
+      return;
+    }
+    // The official Google Identity Services script loads asynchronously.
+    slot.innerHTML = '<span class="google-loading-pill">Loading Google Sign-In…</span>';
+    if (++googleSigninLoadingAttempts <= 24) {
+      setTimeout(renderOfficialGoogleButton, 350);
+    } else {
+      slot.innerHTML = '<span class="google-loading-pill">Google Sign-In unavailable. Refresh the page.</span>';
+      setEmailStatus('error', 'Unable to load Google Sign-In. Please refresh.');
+    }
+  }
 
   function invalidateFlexwayCheck() {
     if (flexwayCheckTimer) clearTimeout(flexwayCheckTimer);
@@ -1442,21 +1485,24 @@ s0.parentNode.insertBefore(s1,s0);
     selectedEmailMethod = method;
     ['google', 'flexway'].forEach(option => {
       const choice = document.getElementById(option + 'Choice');
-      choice.classList.toggle('active', method === option);
-      choice.setAttribute('aria-pressed', String(method === option));
-      document.getElementById(option + 'Panel').classList.toggle('active', method === option);
+      const selected = method === option;
+      choice.classList.toggle('active', selected);
+      choice.setAttribute('aria-pressed', String(selected));
     });
 
+    document.getElementById('googleSwitchSlot').classList.toggle('selected', method === 'google');
+    document.getElementById('googleChoice').classList.toggle('google-hidden', method === 'google');
     document.getElementById('flexwaySwitchSlot').classList.toggle('selected', method === 'flexway');
     document.getElementById('flexwayChoice').classList.toggle('flx-hidden', method === 'flexway');
+    document.getElementById('flexwayPanel').classList.toggle('active', method === 'flexway');
 
     verifiedEmail = '';
     verifiedEmailMethod = '';
     document.getElementById('emailField').value = '';
-    document.getElementById('googleVerifiedPill').classList.remove('show');
 
     if (method === 'google') {
-      setEmailStatus('neutral', 'Sign in using the Google button below.');
+      setEmailStatus('neutral', '');
+      renderOfficialGoogleButton();
     } else {
       validateFlexwayEmailLive();
       setTimeout(() => {
@@ -1485,9 +1531,9 @@ s0.parentNode.insertBefore(s1,s0);
       verifiedEmail = email;
       verifiedEmailMethod = 'google';
       document.getElementById('emailField').value = email;
-      document.getElementById('googleVerifiedPill').textContent = '✓ ' + email;
-      document.getElementById('googleVerifiedPill').classList.add('show');
-      setEmailStatus('ok', 'Google account: ' + email);
+      // The official Google button is already in-place; don't add a second
+      // confirmation line below it. Keep the email for submission.
+      setEmailStatus('ok', 'Google account verified: ' + email);
     } catch (err) {
       clearVerifiedEmail('Google sign-in failed. Please try again.');
     }
@@ -1579,7 +1625,7 @@ s0.parentNode.insertBefore(s1,s0);
     const isFlexway = selectedEmailMethod === 'flexway';
     // Google messages stay in their original position. For Flexway, screen readers
     // still get the announcement while the visible success message is replaced by a check.
-    status.className = 'email-status ' + type + (isFlexway ? ' flexway-visually-hidden' : '');
+    status.className = 'email-status ' + type + ((isFlexway || type !== 'error') ? ' kprf-visually-hidden' : '');
     status.textContent = message;
 
     const indicator = document.getElementById('flexwayApprovedCheck');
@@ -2089,16 +2135,15 @@ s0.parentNode.insertBefore(s1,s0);
     verifiedEmailMethod = '';
     document.getElementById('emailField').value = '';
     document.getElementById('flexwayEmailField').value = '';
-    document.getElementById('googleChoice').classList.remove('active');
+    document.getElementById('googleChoice').classList.remove('active', 'google-hidden');
     document.getElementById('googleChoice').setAttribute('aria-pressed', 'false');
+    document.getElementById('googleSwitchSlot').classList.remove('selected');
     document.getElementById('flexwayChoice').classList.remove('active');
     document.getElementById('flexwayChoice').setAttribute('aria-pressed', 'false');
     document.getElementById('flexwaySwitchSlot').classList.remove('selected');
     document.getElementById('flexwayChoice').classList.remove('flx-hidden');
-    document.getElementById('googlePanel').classList.remove('active');
     document.getElementById('flexwayPanel').classList.remove('active');
-    document.getElementById('googleVerifiedPill').classList.remove('show');
-    setEmailStatus('neutral', 'Choose Google or Flexway to continue.');
+    setEmailStatus('neutral', '');
     document.getElementById('dateField').valueAsDate = new Date();
     document.getElementById('branchField').value = '';
     document.getElementById('notesField').value = '';
